@@ -1,46 +1,87 @@
 package com.portal.jobportal.controller;
 
+import com.portal.jobportal.dto.*;
 import com.portal.jobportal.entity.User;
 import com.portal.jobportal.repository.UserRepository;
+import com.portal.jobportal.security.JwtUtil;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.*;
+import org.springframework.security.authentication.*;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
+@CrossOrigin(origins = "http://localhost:5173")
 public class AuthController {
 
-    private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
+    @Autowired
+    private AuthenticationManager authenticationManager;
 
-    public AuthController(UserRepository userRepository, PasswordEncoder passwordEncoder) {
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-    }
+    @Autowired
+    private UserRepository userRepository;
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private JwtUtil jwtUtil;
+
+    // ✅ REGISTER
     @PostMapping("/register")
-    public String register(@RequestBody User user) {
+    public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
 
-        if (userRepository.findByEmail(user.getEmail()).isPresent()) {
-            return "Email already exists!";
+        if (userRepository.existsByEmail(request.getEmail())) {
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body("Email is already in use!");
         }
 
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        if (request.getRole() == null || request.getRole().isBlank()) {
+            request.setRole("JOB_SEEKER");
+        }
+
+        User user = User.builder()
+                .name(request.getName())
+                .email(request.getEmail())
+                .password(passwordEncoder.encode(request.getPassword()))
+                .role(request.getRole())
+                .build();
+
         userRepository.save(user);
 
-        return "User registered successfully!";
+        return ResponseEntity.ok("User registered successfully");
     }
 
-    // LOGIN
+    // ✅ LOGIN
     @PostMapping("/login")
-    public String login(@RequestBody User loginUser) {
+    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
 
-        User user = userRepository.findByEmail(loginUser.getEmail()).orElse(null);
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        request.getEmail(),
+                        request.getPassword()
+                )
+        );
 
-        if (user == null) return "User not found!";
-        if (!passwordEncoder.matches(loginUser.getPassword(), user.getPassword()))
-            return "Invalid password!";
+        SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        return "Login successful!";
+        User user = userRepository
+                .findByEmail(request.getEmail())
+                .orElseThrow();
+
+        String token = jwtUtil.generateToken(user.getEmail(), user.getRole());
+
+        JwtResponse response = new JwtResponse(
+                token,
+                user.getId(),
+                user.getName(),
+                user.getEmail(),
+                user.getRole()
+        );
+
+        return ResponseEntity.ok(response);
     }
 }
