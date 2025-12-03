@@ -23,43 +23,61 @@ public class JwFilter extends OncePerRequestFilter {
     private UserDetailsServiceImpl userDetailsService;
 
     @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+        String path = request.getServletPath();
+        String method = request.getMethod();
+
+
+        if (path.startsWith("/api/auth")) {
+            return true;
+        }
+
+        if (path.startsWith("/api/jobs") && "GET".equals(method)) {
+            return true;
+        }
+
+
+        return false;
+    }
+
+    @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain)
             throws ServletException, IOException {
 
+        // 1. Debugging: Console me print hoga jab bhi request aayegi
+        System.out.println("Processing Request: " + request.getRequestURI());
+
         String authHeader = request.getHeader("Authorization");
         String token = null;
         String email = null;
 
-        // 🔹 Check Bearer Token
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            token = authHeader.substring(7);
-            email = jwtUtil.extractEmail(token);
-        }
+        try {
 
-        // 🔹 Authenticate if email exists & not already authenticated
-        if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+            if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                token = authHeader.substring(7);
 
-            UserDetails userDetails = userDetailsService.loadUserByUsername(email);
-
-            // 🔹 Validate Token
-            if (jwtUtil.validateToken(token, userDetails.getUsername())) {
-
-                UsernamePasswordAuthenticationToken auth =
-                        new UsernamePasswordAuthenticationToken(
-                                userDetails,
-                                null,
-                                userDetails.getAuthorities()
-                        );
-
-                auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-
-                // Set authentication in Spring Security context
-                SecurityContextHolder.getContext().setAuthentication(auth);
+                email = jwtUtil.extractEmail(token);
             }
-        }
 
+            if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+
+                if (jwtUtil.validateToken(token, userDetails.getUsername())) {
+                    UsernamePasswordAuthenticationToken auth =
+                            new UsernamePasswordAuthenticationToken(
+                                    userDetails,
+                                    null,
+                                    userDetails.getAuthorities()
+                            );
+                    auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(auth);
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("JWT Token Error: " + e.getMessage());
+        }
         filterChain.doFilter(request, response);
     }
 }
