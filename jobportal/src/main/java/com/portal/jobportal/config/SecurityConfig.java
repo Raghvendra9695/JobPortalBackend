@@ -56,20 +56,19 @@ public class SecurityConfig {
         http.csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
-                        // 1. Auth APIs Public hain
+                        .requestMatchers("/api/applications/**").authenticated()
                         .requestMatchers("/api/auth/**").permitAll()
 
-                        // 2. Jobs dekhna (GET) Public hai
+
                         .requestMatchers(HttpMethod.GET, "/api/jobs/**").permitAll()
 
-                        // 3. Jobs banana (POST) aur Delete karna Secured hai
                         .requestMatchers("/api/jobs/**").authenticated()
 
-                        // Baaki sab secured
+
                         .anyRequest().authenticated()
                 )
                 .authenticationProvider(authenticationProvider())
-                // 4. Filter wapas jod diya (Comment hataya)
+
                 .addFilterBefore(jwFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
