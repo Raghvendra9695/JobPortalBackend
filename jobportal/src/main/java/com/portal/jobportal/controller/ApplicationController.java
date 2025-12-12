@@ -27,7 +27,6 @@ public class ApplicationController {
     @Autowired
     private JobRepository jobRepository;
 
-    // 1. Apply for a Job (User Action)
     @PostMapping("/apply/{jobId}")
     public ResponseEntity<?> applyJob(@PathVariable Long jobId, Authentication auth) {
 
