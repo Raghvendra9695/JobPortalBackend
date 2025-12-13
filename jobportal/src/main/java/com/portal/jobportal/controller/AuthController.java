@@ -1,5 +1,4 @@
 package com.portal.jobportal.controller;
-
 import com.portal.jobportal.dto.*;
 import com.portal.jobportal.entity.User;
 import com.portal.jobportal.repository.UserRepository;
@@ -14,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = "*")
 public class AuthController {
 
     @Autowired
