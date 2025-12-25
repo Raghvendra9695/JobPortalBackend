@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = "https://job-portal-frontend-7bxv8dnjw.vercel.app/")
 public class AuthController {
 
     @Autowired
