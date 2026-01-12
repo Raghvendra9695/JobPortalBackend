@@ -20,7 +20,7 @@ import java.util.List;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    // 1. Security Filter Chain (Rules + CORS)
+    // 1. Security Filter Chain (Rules + CORS
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
@@ -35,24 +35,21 @@ public class SecurityConfig {
         return http.build();
     }
 
-    // 2. YE MISSING THA: AuthenticationManager Bean (Login ke liye zaroori)
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
     }
 
-    // 3. Password Encoder (Login password check karne ke liye)
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    // 4. CORS Configuration (Localhost + Vercel fix)
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        configuration.setAllowedOriginPatterns(List.of("*")); // Sab allow (Local + Live)
+        configuration.setAllowedOriginPatterns(List.of(""));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
