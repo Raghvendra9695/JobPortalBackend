@@ -20,16 +20,16 @@ import java.util.List;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    // 1. Security Filter Chain (Rules + CORS
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(AbstractHttpConfigurer::disable) // CSRF Off
-                .cors(cors -> cors.configurationSource(corsConfigurationSource())) // Custom CORS On
+                .csrf(AbstractHttpConfigurer::disable)
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**").permitAll() // Login/Register sabke liye khula
-                        .requestMatchers("/api/**").permitAll()      // Testing ke liye baaki API bhi khuli
-                        .anyRequest().authenticated()                // Baaki sab secured
+                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/**").permitAll()
+                        .anyRequest().authenticated()
                 );
 
         return http.build();
