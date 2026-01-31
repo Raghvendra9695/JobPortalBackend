@@ -21,26 +21,38 @@ public class JobController {
 
     @Autowired
     private UserRepository userRepository;
+
     @PostMapping("/create")
     public ResponseEntity<?> createJob(
             @RequestBody JobRequest request,
             Authentication auth
     ) {
+        // 1. Current Logged-in User nikalo
         String email = auth.getName();
-        User user = userRepository.findByEmail(email).orElseThrow();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
-        if (!user.getRole().equals("EMPLOYER")) {
-            return ResponseEntity.status(403).body("Only employers can post jobs!");
+        // 2. ✅ FIX: Role check me RECRUITER ko bhi add kiya
+        String role = user.getRole().toUpperCase(); // Case insensitive check
+
+        if (!role.equals("EMPLOYER") && !role.equals("RECRUITER")) {
+            return ResponseEntity.status(403).body("Access Denied! Only Employers or Recruiters can post jobs.");
         }
 
-        Job job = jobService.createJob(request, user.getId());
-        return ResponseEntity.ok(job);
+        // 3. Job Create karo
+        try {
+            Job job = jobService.createJob(request, user.getId());
+            return ResponseEntity.ok(job);
+        } catch (Exception e) {
+            e.printStackTrace(); // Console me error dikhega agar Service fail hua
+            return ResponseEntity.status(500).body("Error creating job: " + e.getMessage());
+        }
     }
+
     @GetMapping
     public ResponseEntity<List<Job>> getAll() {
         return ResponseEntity.ok(jobService.getAllJobs());
     }
-
 
     @GetMapping("/{id}")
     public ResponseEntity<?> getJob(@PathVariable Long id) {
