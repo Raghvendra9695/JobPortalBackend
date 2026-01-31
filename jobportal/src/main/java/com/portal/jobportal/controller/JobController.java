@@ -27,24 +27,21 @@ public class JobController {
             @RequestBody JobRequest request,
             Authentication auth
     ) {
-        // 1. Current Logged-in User nikalo
         String email = auth.getName();
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-
-        // 2. ✅ FIX: Role check me RECRUITER ko bhi add kiya
-        String role = user.getRole().toUpperCase(); // Case insensitive check
+        String role = user.getRole().toUpperCase();
 
         if (!role.equals("EMPLOYER") && !role.equals("RECRUITER")) {
             return ResponseEntity.status(403).body("Access Denied! Only Employers or Recruiters can post jobs.");
         }
 
-        // 3. Job Create karo
+
         try {
             Job job = jobService.createJob(request, user.getId());
             return ResponseEntity.ok(job);
         } catch (Exception e) {
-            e.printStackTrace(); // Console me error dikhega agar Service fail hua
+            e.printStackTrace();
             return ResponseEntity.status(500).body("Error creating job: " + e.getMessage());
         }
     }
