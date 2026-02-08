@@ -27,7 +27,7 @@ public class AuthController {
     @Autowired
     private JwtUtil jwtUtil;
 
-    // ✅ REGISTER
+    //  REGISTER
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
 
