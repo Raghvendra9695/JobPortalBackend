@@ -28,7 +28,6 @@ public class AIService {
                 "\nJob Requirements: " + jobDesc +
                 "\n\nKeep it under 200 words. Start with 'Dear Hiring Manager,'.";
 
-        // 2. Request Body Structure for Gemini
         Map<String, Object> part = new HashMap<>();
         part.put("text", prompt);
 
@@ -37,14 +36,13 @@ public class AIService {
 
         Map<String, Object> requestBody = new HashMap<>();
         requestBody.put("contents", List.of(content));
-        String finalUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + apiKey;
+        String finalUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=" + apiKey;
 
         try {
             System.out.println("Calling AI URL: " + finalUrl);
 
             Map<String, Object> response = restTemplate.postForObject(finalUrl, requestBody, Map.class);
 
-            // Response Parsing
             if (response != null && response.containsKey("candidates")) {
                 List<Map<String, Object>> candidates = (List<Map<String, Object>>) response.get("candidates");
                 if (!candidates.isEmpty()) {
