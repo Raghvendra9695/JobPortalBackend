@@ -15,19 +15,20 @@ public class AIService {
     @Value("${gemini.api.key}")
     private String apiKey;
 
-    @Value("${gemini.api.url}")
-    private String apiUrl;
-
     private final RestTemplate restTemplate = new RestTemplate();
 
     public String generateCoverLetter(CoverLetterRequest request) {
-        String prompt = "Write a professional cover letter for " + request.getUserName() +
-                " applying for the position of " + request.getJobTitle() +
-                " at " + request.getCompanyName() + "." +
-                "\n\nKey Skills: " + request.getUserSkills() +
-                "\nJob Description: " + request.getJobDescription() +
-                "\n\nKeep it professional, engaging, and under 250 words. Do not include placeholders like [Date] or [Address], start directly with 'Dear Hiring Manager,'.";
 
+        String skills = (request.getUserSkills() != null) ? request.getUserSkills() : "Java, Communication";
+        String jobDesc = (request.getJobDescription() != null) ? request.getJobDescription() : "Software Engineer role";
+
+        String prompt = "Write a short, professional cover letter for " + request.getUserName() +
+                " applying for " + request.getJobTitle() + " at " + request.getCompanyName() + "." +
+                "\n\nSkills: " + skills +
+                "\nJob Requirements: " + jobDesc +
+                "\n\nKeep it under 200 words. Start with 'Dear Hiring Manager,'.";
+
+        // 2. Request Body Structure for Gemini
         Map<String, Object> part = new HashMap<>();
         part.put("text", prompt);
 
@@ -36,20 +37,28 @@ public class AIService {
 
         Map<String, Object> requestBody = new HashMap<>();
         requestBody.put("contents", List.of(content));
-        String finalUrl = apiUrl + apiKey;
+        String finalUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + apiKey;
 
         try {
-            Map<String, Object> response = restTemplate.postForObject(finalUrl, requestBody, Map.class);
-            List<Map<String, Object>> candidates = (List<Map<String, Object>>) response.get("candidates");
-            Map<String, Object> firstCandidate = candidates.get(0);
-            Map<String, Object> contentResponse = (Map<String, Object>) firstCandidate.get("content");
-            List<Map<String, Object>> parts = (List<Map<String, Object>>) contentResponse.get("parts");
+            System.out.println("Calling AI URL: " + finalUrl);
 
-            return (String) parts.get(0).get("text");
+            Map<String, Object> response = restTemplate.postForObject(finalUrl, requestBody, Map.class);
+
+            // Response Parsing
+            if (response != null && response.containsKey("candidates")) {
+                List<Map<String, Object>> candidates = (List<Map<String, Object>>) response.get("candidates");
+                if (!candidates.isEmpty()) {
+                    Map<String, Object> firstCandidate = candidates.get(0);
+                    Map<String, Object> contentResponse = (Map<String, Object>) firstCandidate.get("content");
+                    List<Map<String, Object>> parts = (List<Map<String, Object>>) contentResponse.get("parts");
+                    return (String) parts.get(0).get("text");
+                }
+            }
+            return "AI returned an empty response. Please try again.";
 
         } catch (Exception e) {
             e.printStackTrace();
-            return "Error generating cover letter: " + e.getMessage();
+            return "Error: " + e.getMessage();
         }
     }
 }
