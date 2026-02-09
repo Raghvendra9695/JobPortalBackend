@@ -19,14 +19,14 @@ public class AIService {
 
     public String generateCoverLetter(CoverLetterRequest request) {
 
-        String skills = (request.getUserSkills() != null && !request.getUserSkills().isEmpty()) ? request.getUserSkills() : "Java, Communication";
-        String jobDesc = (request.getJobDescription() != null && !request.getJobDescription().isEmpty()) ? request.getJobDescription() : "Software Engineer role";
+        String skills = (request.getUserSkills() != null && !request.getUserSkills().isEmpty()) ? request.getUserSkills() : "Java";
+        String jobDesc = (request.getJobDescription() != null && !request.getJobDescription().isEmpty()) ? request.getJobDescription() : "Developer";
 
-        String prompt = "Write a short, professional cover letter for " + request.getUserName() +
+        String prompt = "Write a short professional cover letter for " + request.getUserName() +
                 " applying for " + request.getJobTitle() + " at " + request.getCompanyName() + "." +
                 "\n\nSkills: " + skills +
-                "\nJob Requirements: " + jobDesc +
-                "\n\nKeep it under 200 words. Start with 'Dear Hiring Manager,'.";
+                "\nJob Description: " + jobDesc +
+                "\n\nOutput only the letter body. Keep it under 200 words.";
 
         Map<String, Object> part = new HashMap<>();
         part.put("text", prompt);
@@ -38,11 +38,10 @@ public class AIService {
         requestBody.put("contents", List.of(content));
 
         String validKey = (apiKey != null) ? apiKey.trim() : "";
-        String finalUrl = "https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key=" + validKey;
+        String finalUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" + validKey;
 
         try {
-            System.out.println("🚀 Calling Stable API: " + finalUrl);
-
+            System.out.println("Calling URL: " + finalUrl);
             Map<String, Object> response = restTemplate.postForObject(finalUrl, requestBody, Map.class);
 
             if (response != null && response.containsKey("candidates")) {
@@ -54,12 +53,11 @@ public class AIService {
                     return (String) parts.get(0).get("text");
                 }
             }
-            return "AI returned an empty response. Please try again.";
+            return "Error: Empty response from AI.";
 
         } catch (Exception e) {
             e.printStackTrace();
-
-            return "Server Error: " + e.getMessage();
+            return "Failed to generate: " + e.getMessage();
         }
     }
 }
