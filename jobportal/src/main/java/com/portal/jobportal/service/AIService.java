@@ -18,10 +18,8 @@ public class AIService {
     private final RestTemplate restTemplate = new RestTemplate();
 
     public String generateCoverLetter(CoverLetterRequest request) {
-
-        String skills = (request.getUserSkills() != null) ? request.getUserSkills() : "Java, Communication";
-        String jobDesc = (request.getJobDescription() != null) ? request.getJobDescription() : "Software Engineer role";
-
+        String skills = (request.getUserSkills() != null && !request.getUserSkills().isEmpty()) ? request.getUserSkills() : "Java, Communication";
+        String jobDesc = (request.getJobDescription() != null && !request.getJobDescription().isEmpty()) ? request.getJobDescription() : "Software Engineer role";
         String prompt = "Write a short, professional cover letter for " + request.getUserName() +
                 " applying for " + request.getJobTitle() + " at " + request.getCompanyName() + "." +
                 "\n\nSkills: " + skills +
@@ -36,13 +34,13 @@ public class AIService {
 
         Map<String, Object> requestBody = new HashMap<>();
         requestBody.put("contents", List.of(content));
-        String finalUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=" + apiKey;
+        String validKey = (apiKey != null) ? apiKey.trim() : "";
+        String finalUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + validKey;
 
         try {
-            System.out.println("Calling AI URL: " + finalUrl);
+            System.out.println("Calling Gemini API...");
 
             Map<String, Object> response = restTemplate.postForObject(finalUrl, requestBody, Map.class);
-
             if (response != null && response.containsKey("candidates")) {
                 List<Map<String, Object>> candidates = (List<Map<String, Object>>) response.get("candidates");
                 if (!candidates.isEmpty()) {
@@ -56,7 +54,7 @@ public class AIService {
 
         } catch (Exception e) {
             e.printStackTrace();
-            return "Error: " + e.getMessage();
+            return "Error from AI Service: " + e.getMessage();
         }
     }
 }
