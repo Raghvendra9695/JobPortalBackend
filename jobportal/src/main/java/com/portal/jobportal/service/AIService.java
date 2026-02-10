@@ -11,7 +11,6 @@ import java.util.Map;
 
 @Service
 public class AIService {
-
     @Value("${gemini.api.key}")
     private String apiKey;
 
@@ -36,12 +35,11 @@ public class AIService {
 
         Map<String, Object> requestBody = new HashMap<>();
         requestBody.put("contents", List.of(content));
-
         String validKey = (apiKey != null) ? apiKey.trim() : "";
         String finalUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" + validKey;
 
         try {
-            System.out.println("Calling URL: " + finalUrl);
+            System.out.println("Calling AI Service...");
             Map<String, Object> response = restTemplate.postForObject(finalUrl, requestBody, Map.class);
 
             if (response != null && response.containsKey("candidates")) {
