@@ -36,10 +36,11 @@ public class AIService {
         Map<String, Object> requestBody = new HashMap<>();
         requestBody.put("contents", List.of(content));
         String validKey = (apiKey != null) ? apiKey.trim() : "";
-        String finalUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" + validKey;
+
+        String finalUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + validKey;
 
         try {
-            System.out.println("Calling AI Service...");
+            System.out.println("Calling AI Model: Gemini 1.5 Flash");
             Map<String, Object> response = restTemplate.postForObject(finalUrl, requestBody, Map.class);
 
             if (response != null && response.containsKey("candidates")) {
@@ -51,7 +52,7 @@ public class AIService {
                     return (String) parts.get(0).get("text");
                 }
             }
-            return "Error: Empty response from AI.";
+            return "Error: AI response was empty.";
 
         } catch (Exception e) {
             e.printStackTrace();
