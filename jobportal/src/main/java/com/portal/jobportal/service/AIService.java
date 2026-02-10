@@ -17,7 +17,6 @@ public class AIService {
     private final RestTemplate restTemplate = new RestTemplate();
 
     public String generateCoverLetter(CoverLetterRequest request) {
-
         String skills = (request.getUserSkills() != null && !request.getUserSkills().isEmpty()) ? request.getUserSkills() : "Java";
         String jobDesc = (request.getJobDescription() != null && !request.getJobDescription().isEmpty()) ? request.getJobDescription() : "Developer";
 
@@ -27,6 +26,7 @@ public class AIService {
                 "\nJob Description: " + jobDesc +
                 "\n\nOutput only the letter body. Keep it under 200 words.";
 
+
         Map<String, Object> part = new HashMap<>();
         part.put("text", prompt);
 
@@ -35,14 +35,17 @@ public class AIService {
 
         Map<String, Object> requestBody = new HashMap<>();
         requestBody.put("contents", List.of(content));
-        String validKey = (apiKey != null) ? apiKey.trim() : "";
 
-        String finalUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + validKey;
+        String validKey = (apiKey != null) ? apiKey.trim() : "";
+        String finalUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=" + validKey;
 
         try {
-            System.out.println("Calling AI Model: Gemini 1.5 Flash");
+            System.out.println("Calling URL: " + finalUrl);
+
+            // API Call
             Map<String, Object> response = restTemplate.postForObject(finalUrl, requestBody, Map.class);
 
+            // Response Check
             if (response != null && response.containsKey("candidates")) {
                 List<Map<String, Object>> candidates = (List<Map<String, Object>>) response.get("candidates");
                 if (!candidates.isEmpty()) {
@@ -52,7 +55,7 @@ public class AIService {
                     return (String) parts.get(0).get("text");
                 }
             }
-            return "Error: AI response was empty.";
+            return "Error: Empty response from AI.";
 
         } catch (Exception e) {
             e.printStackTrace();
